@@ -53,7 +53,7 @@ A note on song release dates. Because the release dates of songs in both last.fm
 
 ### Data Cleaning
 
-1. from the base directory run data_cleaning/run.py  - this does not overwrite anything in the original DB, so all changes can be reverted.
+1. from the base directory run ```python3 data_cleaning/run.py```  - this does not overwrite anything in the original DB, so all changes can be reverted.
 
 
 
