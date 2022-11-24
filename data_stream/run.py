@@ -1,13 +1,20 @@
-import csv
-import sys
-# import nullmodel
-import os
 import sqlite3
+from pathlib import Path
+import yaml
+
+"""
+This is the class to create a stream of listening events used for specific types of analysis. Probably not relevant for most users.
+"""
 
 
 class StreamDB(object):
 
     def __init__(self, db_file_path):
+
+        config_path = Path().absolute().joinpath("config").joinpath("config.yaml")
+        with open(config_path, "r") as stream:
+            self.config = yaml.safe_load(stream)
+
         self.connection = sqlite3.connect(db_file_path)
         self.cursor = self.connection.cursor()
         self.create_db()
@@ -15,7 +22,8 @@ class StreamDB(object):
     def create_db(self):
         print("Creating DB")
 
-        q = "ATTACH database '../data/lastfmdb_stream.db' AS streamdb;"
+        stream_db_path = Path().absolute().joinpath("data").joinpath("lastfm_stream.db")
+        q = f"ATTACH database '{stream_db_path}' AS streamdb;"
         self.cursor.execute(q)
 
         q = """
@@ -42,24 +50,22 @@ class StreamDB(object):
         self.cursor.execute(q)
         self.connection.commit()
 
-        q = """
+        q = f"""
         INSERT INTO streamdb.nodes(id_nb, timebin)
-        SELECT so.id_nb, (CAST (STRFTIME('%Y', DATETIME(lis.time, 'unixepoch')) AS INT) - 2005) * 12 + CAST(STRFTIME('%m', DATETIME(lis.time, 'unixepoch')) AS INT) AS 'timebin'
+        SELECT so.id_nb, (CAST (STRFTIME('%Y', DATETIME(lis.time, 'unixepoch')) AS INT) - {self.config['timeframe']['start_year']}) * 12 + CAST(STRFTIME('%m', DATETIME(lis.time, 'unixepoch')) AS INT) - {self.config['timeframe']['start_month']} + 1 AS 'timebin'
         FROM songs so
         INNER JOIN listens lis
         ON so.id_nb = lis.song
-        WHERE lis.time BETWEEN 1104537600 AND 1388534400
         GROUP BY so.id_nb
         ORDER BY lis.time ASC
         """
         self.cursor.execute(q)
         self.connection.commit()
 
-        q = """
+        q = f"""
         INSERT INTO streamdb.stream(node, realtime, timebin)
-        SELECT song, time, (CAST (STRFTIME('%Y', DATETIME(time, 'unixepoch')) AS INT) - 2005) * 12 + CAST(STRFTIME('%m', DATETIME(time, 'unixepoch')) AS INT) AS 'timebin'
+        SELECT song, time, (CAST (STRFTIME('%Y', DATETIME(time, 'unixepoch')) AS INT) - {self.config['timeframe']['start_year']}) * 12 + CAST(STRFTIME('%m', DATETIME(time, 'unixepoch')) AS INT) - {self.config['timeframe']['start_month']} + 1 AS 'timebin'
         FROM listens
-        WHERE time BETWEEN 1104537600 AND 1388534400
         ORDER BY time ASC
         """
         self.cursor.execute(q)
@@ -69,4 +75,5 @@ class StreamDB(object):
 
 
 if __name__ == "__main__":
-    cl = StreamDB(db_file_path="../data/lastfm_processed.db")
+    db_file_path = Path().absolute().joinpath("data").joinpath("lastfm_processed.db")
+    cl = StreamDB(db_file_path=db_file_path)

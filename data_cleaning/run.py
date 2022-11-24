@@ -53,7 +53,6 @@ class LastFM(object):
 
         self.logger.info("\nNew users per month:\n" + "".join([f"    {x['monthyear']}: {x['cnt']}\n" for x in dbq.get_user_registrations_per_month()]))
 
-
     def estimate_song_release_dates(self):
 
         """
