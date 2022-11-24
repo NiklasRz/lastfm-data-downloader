@@ -4,21 +4,11 @@ from queries import dbq as dbq
 import pylast
 import logging
 import traceback
-import time
 
 """
 A structured and systematic way of collecting data from lastfm
 
-1. create last.fm API account
-    https://www.last.fm/api/account/create
-
-    In principle one could create any number of accounts using temporary email accounts such as https://temp-mail.org/en/ . last.fm also doesn't check for "+" in emails, meaning addresses like myemail+1@gmail.com, myemail+2@gmail.com could be used to create any number of last.fm accounts from one gmail account. This is against the last.fm terms of service and as such I highly advise against doing so. It it mentioned only for educational purposes.
-
-2. save the credentials in .last_fm_credentials.json. An example formatting can be found in last_fm_credentials_EXAMPLE.json
-
-3. configure config.yaml to your needs
-
-4. execute run.py
+This is the base class.
 
 Note: the data collection can be interrupted at any point. It will pick up where it left when you restart the process.
 
@@ -57,9 +47,14 @@ class DataCollector(object):
         self.logger.info(f"p{self.pid}    Fetching users.")
 
         # count users that have been fully processed
-        n_users = dbq.count_users_with_status(
+        n_users = dbq.count_users_with_status_bigger(
             status=2
         )
+
+        if self.config["limits"]["users"] and self.config["limits"]["users"] <= n_users:
+            self.logger.info(f"p{self.pid}    Users processed: {n_users}. Reached limit. Continuing with listenings.")
+            return "stop"
+
         self.logger.info(f"p{self.pid}    Users processed: {n_users}")
 
         # fetch users where we don't have the friendship data yet
@@ -71,7 +66,7 @@ class DataCollector(object):
 
         # this is for the initialization if there are no users yet (we use seeds from reddit)
         if len(users_to_fetch) == 0 and n_users == 0:
-            users_to_fetch = [{"id": 0, "name": x} for x in ["edgarfuckedup", "vikingfrog86", "Amixor33"]]
+            users_to_fetch = [{"id": 0, "name": x} for x in self.config["seeds"]]
             for u in users_to_fetch:
                 us = self.nw.get_user(u["name"])
                 dbq.add_user(
@@ -170,26 +165,13 @@ class DataCollector(object):
 
             user_obj = self.nw.get_user(user["name"])
 
-            # TODO: if the stream doesn' work, try splitting the date range
-            # if user["listens"] > self.config["splitting_threshold"]:
-            #
-            #     start = dt.datetime(self.config["timeframe"]["start_year"], self.config["timeframe"]["start_month"], 1, 0, 0)
-            #     end = dt.datetime(self.config["timeframe"]["end_year"], self.config["timeframe"]["end_month"], 1, 0, 0)
-            #     self.utc_start = calendar.timegm(start.utctimetuple())
-            #     self.utc_end = calendar.timegm(end.utctimetuple())
-
             try:
-                # if self.debug:
-                #     t_start = time.time()
                 tracks = user_obj.get_recent_tracks(
                     time_from=self.utc_start,
                     time_to=self.utc_end,
                     limit=None,
                     stream=True
                 )
-                # if self.debug:
-                #     t_end = time.time()
-                #     self.logger.info(f"           ----t: get_recent_tracks {t_end - t_start}")
             except Exception:
                 self.logger.info(f"p{self.pid}    User listening history is private.")
                 dbq.update_data_is_private(
@@ -206,8 +188,6 @@ class DataCollector(object):
                             if v >= self.config["speedtest_sample"]:
                                 print("Finished Speedtest")
                                 return
-
-                        # print("       ", v)
 
                         # check if the artist is already in the db. if not, fetch it from the api and add it.
                         artist_name = track.track.artist.name
@@ -295,8 +275,6 @@ class DataCollector(object):
 
         self.logger.info(f"p{self.pid}    Fetching tags.")
 
-        # to_fetch = dbq.count_artists_with_no_tags()
-        # self.logger.info(f"p{self.pid}    Artists with no tags left: {to_fetch}")
         artists = dbq.get_artists_with_no_tags(n=100)
 
         if len(artists) == 0:

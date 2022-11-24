@@ -36,6 +36,10 @@ def debug_timer(func):
 
 def retry_if_locked(func):
 
+    """
+    With multiple API keys fetching and inserting data simultaneously, ometimes an SQL insertion fails. This decorator makes sure that any operation that fails is repeated after a brief delay until it succeeds.
+    """
+
     def inner2(*args, **kwargs):
 
         while True:
@@ -91,6 +95,23 @@ class DataBaseQueries(object):
         INNER JOIN data_collection fd
         ON fd.user = us.id_nb
         WHERE fd.status = {status}
+        ;
+        """
+
+        self.db.cursor.execute(query)
+        return self.db.cursor.fetchone()[0]
+
+    @retry_if_locked
+    @debug_timer
+    def count_users_with_status_bigger(self, status):
+
+        query = f"""
+        SELECT
+            COUNT(us.name)
+        FROM users us
+        INNER JOIN data_collection fd
+        ON fd.user = us.id_nb
+        WHERE fd.status >= {status}
         ;
         """
 

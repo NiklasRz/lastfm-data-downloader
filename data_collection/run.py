@@ -43,7 +43,7 @@ class LastFM(object):
 
     def get_data(self):
 
-        self.logger.info("\n\n======== NEW RUN =======\n\n")
+        self.logger.info("\n\n======== LAST.FM DATA DOWNLOADER =======\n\n")
 
         # reset the status of eventual entities that were marked as "being fetched" and cancelled before the fetching finished
         dbq.reset_cancelled_fetching()
@@ -64,7 +64,7 @@ class LastFM(object):
 
             processes = []
 
-            # first, test the credentials
+            # test the credentials
             for a in self.accounts:
                 credentials = self.accounts[a]
                 network = pylast.LastFMNetwork(

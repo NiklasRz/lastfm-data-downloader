@@ -1,5 +1,6 @@
-import os
 import sqlite3  # is included in core
+from pathlib import Path
+import os
 
 """
 Here we define and initialize the database tables for the data collector.
@@ -8,7 +9,10 @@ Remember that song names are not unique. Hence also no unique indexing.
 
 """
 
-file_path = "../data/lastfm_raw.db"
+file_path = Path().absolute().joinpath("data").joinpath("lastfm_raw.db")
+if not file_path.exists():
+    os.mkdir(Path().absolute().joinpath("data"))
+
 
 DB_INIT = """
 
@@ -111,7 +115,7 @@ class DB(object):
 
     def connect(self):
         self.connection = sqlite3.connect(self.file_path)
-        self.connection.row_factory = sqlite3.Row  # DICT query results (misleading name imo)
+        self.connection.row_factory = sqlite3.Row  # DICT query results (Hey what's a good name for this thing that returns dictionaries instead of rows? IDK, let's call it row_factory!)
         self.cursor = self.connection.cursor()
         for cmd in DB_INIT.split(';'):
             self.cursor.execute(cmd)

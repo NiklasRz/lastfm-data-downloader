@@ -4,10 +4,12 @@ This is a simple Python program to fetch data from the last.fm API and store it 
 
 The output tables include:
 - users (name, country, registration date, total listens)
-- songs (name, artist, album, first time of appearance)
+- songs (name, artist, album, first time of appearance, musicbrainz ID if available)
 - listens (time-ordered listening histories of the users)
+- artists (name, musicbrainz ID if available)
 - artist tags (including weights, these are the only tags that are frequently used)
 - friendships (friendship links between users)
+
 
 
 ## How to use
@@ -25,9 +27,22 @@ A structured and systematic way of collecting data from lastfm
 
 3. configure config/config.yaml to your needs
 
-4. from the base directory run: python3 data_collection/run.py
+4. from the base directory run: "python3 data_collection/run.py"
 
-Note: the data collection can be interrupted at any point. It will pick up where it left when you restart the process.
+    Depending on the number of API keys you are using and the amount of data you want to collect, this can take very long due to the last.fm rate limits at 1 request per key per second.
+
+    You can check the progress at any time by running: "python3 data_collection/quick_check.py"
+
+    Note: the data collection can be interrupted at any point. It will pick up where it left when you restart the process.
+
+
+The data_collection table keeps track of the data status of each fetched user. The following entries are possible:
+<2 = friends have not been fetched (not ready)
+2 = friends have been fetched but listenings have not been fetched
+3 = listenings are being fetched
+4 = listenings have been fetched
+5 = broken user (might have deleted their account)
+
 
 
 ### Data Cleaning
@@ -39,3 +54,8 @@ Note: the data collection can be interrupted at any point. It will pick up where
 ### Data Stream (optional)
 
 For certain analysis such as the analysis of attachment kernels, it is convenient to have the listening data formatted in a time-ordered stream of events where each song listening event is related to a song, a real time, an intrinsic time and a timebin. To create a separate database that contains this stream, run data_stream/run.py
+
+
+## Publication
+
+This data downloader was written as part of a scientific study. If you are using it for scientific purposes please consider citing
