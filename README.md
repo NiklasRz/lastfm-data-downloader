@@ -24,8 +24,8 @@ A structured and systematic way of collecting data from lastfm
 
 1. create last.fm API account
     https://www.last.fm/api/account/create
-
-    This also works with multiple API keys but attention must be paid to the last.fm API terms of service.
+    
+    In principle, this program also works with multiple API keys in parallel, but attention must be paid to the last.fm API terms of service. Please make sure you are  complying with last.fm's terms of service.
 
 2. save the credentials in config/last_fm_credentials.json. An example formatting can be found in ```config/last_fm_credentials_EXAMPLE.json```
 
