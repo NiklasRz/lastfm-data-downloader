@@ -83,7 +83,6 @@ CREATE TABLE IF NOT EXISTS cleandb.albums(
 
 
 class DB(object):
-
     def __init__(self):
         self.file_path = file_path_raw
         self.connect()
@@ -92,6 +91,6 @@ class DB(object):
         self.connection = sqlite3.connect(self.file_path)
         self.connection.row_factory = sqlite3.Row  # DICT query results
         self.cursor = self.connection.cursor()
-        for cmd in DB_INIT.split(';'):
+        for cmd in DB_INIT.split(";"):
             self.cursor.execute(cmd)
             self.connection.commit()

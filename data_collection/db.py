@@ -108,15 +108,16 @@ CREATE TABLE IF NOT EXISTS data_collection(
 
 
 class DB(object):
-
     def __init__(self):
         self.file_path = file_path
         self.connect()
 
     def connect(self):
         self.connection = sqlite3.connect(self.file_path)
-        self.connection.row_factory = sqlite3.Row  # DICT query results (Hey what's a good name for this method that returns dictionaries instead of rows? IDK, let's call it row_factory!)
+        self.connection.row_factory = (
+            sqlite3.Row
+        )  # DICT query results (Hey what's a good name for this method that returns dictionaries instead of rows? IDK, let's call it row_factory!)
         self.cursor = self.connection.cursor()
-        for cmd in DB_INIT.split(';'):
+        for cmd in DB_INIT.split(";"):
             self.cursor.execute(cmd)
             self.connection.commit()

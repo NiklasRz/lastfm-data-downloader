@@ -10,13 +10,14 @@ from pathlib import Path
 
 
 class LastFM(object):
-
     def __init__(self):
 
         # Logging
-        logfile = Path().absolute().joinpath("data").joinpath("logfile_lfm_collector.log")
+        logfile = (
+            Path().absolute().joinpath("data").joinpath("logfile_lfm_collector.log")
+        )
         handler = logging.FileHandler(logfile)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
         handler.setFormatter(formatter)
         self.logger = logging.getLogger("data_py_logger")
         self.logger.setLevel(logging.DEBUG)
@@ -24,13 +25,31 @@ class LastFM(object):
         self.logger.addHandler(logging.StreamHandler())  # to console
 
         # load credentials
-        if Path().absolute().joinpath("config").joinpath("last_fm_credentials.json").exists():
-            credentials_path = Path().absolute().joinpath("config").joinpath("last_fm_credentials.json")
+        if (
+            Path()
+            .absolute()
+            .joinpath("config")
+            .joinpath("last_fm_credentials.json")
+            .exists()
+        ):
+            credentials_path = (
+                Path()
+                .absolute()
+                .joinpath("config")
+                .joinpath("last_fm_credentials.json")
+            )
         else:
-            credentials_path = Path().absolute().joinpath("config").joinpath("last_fm_credentials.json")
-            with open(credentials_path, 'w'):
+            credentials_path = (
+                Path()
+                .absolute()
+                .joinpath("config")
+                .joinpath("last_fm_credentials.json")
+            )
+            with open(credentials_path, "w"):
                 pass
-            self.logger.error("Please add your last.fm credentials to config/last_fm_credentials.json. An example is provided in config/last_fm_credentials_EXAMPLE.json")
+            self.logger.error(
+                "Please add your last.fm credentials to config/last_fm_credentials.json. An example is provided in config/last_fm_credentials_EXAMPLE.json"
+            )
             return
         with open(credentials_path) as f:
             self.accounts = json.load(f)
@@ -53,8 +72,7 @@ class LastFM(object):
         if self.config["speedtest"]:
             credentials = self.accounts["1"]
             network = pylast.LastFMNetwork(
-                api_key=credentials["key"],
-                api_secret=credentials["secret"]
+                api_key=credentials["key"], api_secret=credentials["secret"]
             )
             DataCollector(network=network, config=self.config, pid=0).get_listens()
             return
@@ -69,13 +87,19 @@ class LastFM(object):
             for a in self.accounts:
                 credentials = self.accounts[a]
                 network = pylast.LastFMNetwork(
-                    api_key=credentials["key"],
-                    api_secret=credentials["secret"]
+                    api_key=credentials["key"], api_secret=credentials["secret"]
                 )
                 self.test_credentials(network, credentials)
 
             for pid, a in enumerate(self.accounts):
-                p = Process(target=self.runner, args=(self.accounts[a], pid, f, ))
+                p = Process(
+                    target=self.runner,
+                    args=(
+                        self.accounts[a],
+                        pid,
+                        f,
+                    ),
+                )
                 p.start()
                 processes.append(p)
                 time.sleep(self.config["sleep"]["between_process_inits"])
@@ -86,8 +110,7 @@ class LastFM(object):
     def runner(self, credentials, pid, f):
 
         network = pylast.LastFMNetwork(
-            api_key=credentials["key"],
-            api_secret=credentials["secret"]
+            api_key=credentials["key"], api_secret=credentials["secret"]
         )
 
         dc = DataCollector(network=network, config=self.config, pid=pid)
@@ -108,17 +131,26 @@ class LastFM(object):
             try:
                 action = f()
             except pylast.NetworkError as e:
-                print("222", e.__class__.__name__, e.__class__.__qualname__, e.__context__)
+                print(
+                    "222", e.__class__.__name__, e.__class__.__qualname__, e.__context__
+                )
                 # 222 NetworkError NetworkError _ssl.c:1114: The handshake operation timed out
                 self.logger.error(f" p{pid}    Caught exception: {e},")
 
-                self.logger.info(f" p{pid}    sleeping {self.config['sleep']['sleep_short']}s")
+                self.logger.info(
+                    f" p{pid}    sleeping {self.config['sleep']['sleep_short']}s"
+                )
                 time.sleep(self.config["sleep"]["sleep_short"])
 
                 # if we get timed out multiple times, wait 10 minutes before we try again. This is aimed at circumventing multiple possible reasons for exceptions e.g. internet problems, server downtime, server overload or rate limitations. The optimum sleep time must be found empirically.
                 timeout_counter += 1
-                if timeout_counter > self.config["sleep"]["n_timeouts_until_long_sleep"]:
-                    self.logger.info(f" p{pid}    sleeping {self.config['sleep']['sleep_long']}s")
+                if (
+                    timeout_counter
+                    > self.config["sleep"]["n_timeouts_until_long_sleep"]
+                ):
+                    self.logger.info(
+                        f" p{pid}    sleeping {self.config['sleep']['sleep_long']}s"
+                    )
                     time.sleep(self.config["sleep"]["sleep_long"])
                     timeout_counter = 0
 
@@ -128,7 +160,9 @@ class LastFM(object):
             my_user = network.get_user(credentials["username"])
             my_user.get_registered()
         except Exception:
-            raise Exception(f"Invalid user credentials on user {credentials['username']}")
+            raise Exception(
+                f"Invalid user credentials on user {credentials['username']}"
+            )
 
 
 if __name__ == "__main__":

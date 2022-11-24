@@ -16,14 +16,25 @@ Note: the data collection can be interrupted at any point. It will pick up where
 
 
 class DataCollector(object):
-
     def __init__(self, network, config, pid):
         self.pid = pid
         self.logger = logging.getLogger("data_py_logger")
         self.config = config
         self.nw = network
-        start = dt.datetime(self.config["timeframe"]["start_year"], self.config["timeframe"]["start_month"], 1, 0, 0)
-        end = dt.datetime(self.config["timeframe"]["end_year"], self.config["timeframe"]["end_month"], 1, 0, 0)
+        start = dt.datetime(
+            self.config["timeframe"]["start_year"],
+            self.config["timeframe"]["start_month"],
+            1,
+            0,
+            0,
+        )
+        end = dt.datetime(
+            self.config["timeframe"]["end_year"],
+            self.config["timeframe"]["end_month"],
+            1,
+            0,
+            0,
+        )
         self.utc_start = calendar.timegm(start.utctimetuple())
         self.utc_end = calendar.timegm(end.utctimetuple())
         self.debug = self.config["debug"]
@@ -47,40 +58,32 @@ class DataCollector(object):
         self.logger.info(f"p{self.pid}    Fetching users.")
 
         # count users that have been fully processed
-        n_users = dbq.count_users_with_status_bigger(
-            status=2
-        )
+        n_users = dbq.count_users_with_status_bigger(status=2)
 
         if self.config["limits"]["users"] and self.config["limits"]["users"] <= n_users:
-            self.logger.info(f"p{self.pid}    Users processed: {n_users}. Reached limit. Continuing with listenings.")
+            self.logger.info(
+                f"p{self.pid}    Users processed: {n_users}. Reached limit. Continuing with listenings."
+            )
             return "stop"
 
         self.logger.info(f"p{self.pid}    Users processed: {n_users}")
 
         # fetch users where we don't have the friendship data yet
         # we use relatively small batches because we run these in parallel
-        users_to_fetch = dbq.get_users_with_no_data(
-            n=1,
-            status=0
-        )
+        users_to_fetch = dbq.get_users_with_no_data(n=1, status=0)
 
         # this is for the initialization if there are no users yet (we use seeds from reddit)
         if len(users_to_fetch) == 0 and n_users == 0:
             users_to_fetch = [{"id": 0, "name": x} for x in self.config["seeds"]]
             for u in users_to_fetch:
                 us = self.nw.get_user(u["name"])
-                dbq.add_user(
-                    user_object=us
-                )
+                dbq.add_user(user_object=us)
         elif len(users_to_fetch) == 0 and n_users != 0:
             self.logger.info(f"p{self.pid}    finished processing users.")
             return "stop"
 
         # mark these users as being fetched right now
-        dbq.update_data_status(
-            user_ids=[x["id"] for x in users_to_fetch],
-            status=1
-        )
+        dbq.update_data_status(user_ids=[x["id"] for x in users_to_fetch], status=1)
 
         # fetch the friends and add them to the db
         for u in users_to_fetch:
@@ -100,18 +103,10 @@ class DataCollector(object):
                 else:
                     print("1: NEW ERROR", E.__class__.__name__, E.__context__)
             for fr in friends:
-                friend_id = dbq.add_user(
-                    user_object=fr
-                )
+                friend_id = dbq.add_user(user_object=fr)
                 if friend_id:  # sometimes a user can't be fetched
-                    dbq.add_friendship(
-                        user1=u["id"],
-                        user2=friend_id
-                    )
-            dbq.update_data_status(
-                user_ids=[u["id"]],
-                status=status
-            )
+                    dbq.add_friendship(user1=u["id"], user2=friend_id)
+            dbq.update_data_status(user_ids=[u["id"]], status=status)
 
         return "repeat"
 
@@ -134,17 +129,12 @@ class DataCollector(object):
         self.logger.info(f"p{self.pid}    Fetching listens.")
 
         # count users that have been fully processed
-        n_users = dbq.count_users_with_status(
-            status=4
-        )
+        n_users = dbq.count_users_with_status(status=4)
         self.logger.info(f"p{self.pid}    User listenings processed: {n_users}")
 
         # fetch users where we don't have the listening data yet
         # we use relatively small batches because we run these in parallel
-        users_to_fetch = dbq.get_users_with_no_data(
-            n=1,
-            status=2
-        )
+        users_to_fetch = dbq.get_users_with_no_data(n=1, status=2)
 
         # this is for when we are done
         if len(users_to_fetch) == 0 and n_users != 0:
@@ -152,10 +142,7 @@ class DataCollector(object):
             return "stop"
 
         # mark these users as being fetched right now
-        dbq.update_data_status(
-            user_ids=[x["id"] for x in users_to_fetch],
-            status=3
-        )
+        dbq.update_data_status(user_ids=[x["id"] for x in users_to_fetch], status=3)
 
         # fetch the listenings and add them to the db
         for user in users_to_fetch:
@@ -170,13 +157,11 @@ class DataCollector(object):
                     time_from=self.utc_start,
                     time_to=self.utc_end,
                     limit=None,
-                    stream=True
+                    stream=True,
                 )
             except Exception:
                 self.logger.info(f"p{self.pid}    User listening history is private.")
-                dbq.update_data_is_private(
-                    user_id=user["id"]
-                )
+                dbq.update_data_is_private(user_id=user["id"])
                 # sometimes we get an error "user must be logged in". Probably this means that the listening history of that user is private.
                 tracks = []
 
@@ -200,8 +185,7 @@ class DataCollector(object):
                                 # sometimes the artist can't be accessed. Don't know why, might have been removed from the data. This is NOT handling the case where an artist doesn't have a mbid, which happens much more frequently, but rather the case where an artist exists in the listens history but can't be found in the table of artists.
                                 artist_mbid = None
                             artist_id = dbq.add_artist(
-                                artist_name=artist_name,
-                                mb_id=artist_mbid
+                                artist_name=artist_name, mb_id=artist_mbid
                             )
 
                         album_id = None
@@ -213,18 +197,22 @@ class DataCollector(object):
                                 # sometimes the album can't be accessed. Don't know why, might have been removed from the data. This is NOT handling the case where a song doesn't have an album, which happens much more frequently, but rather the case where an album exists in the listens history but can't be found in the table of albums.
                                 album = None
                             if album:
-                                album_id = dbq.get_album_id_from_name(album_name=album.title)
+                                album_id = dbq.get_album_id_from_name(
+                                    album_name=album.title
+                                )
                                 if not album_id:
                                     album_mbid = album.get_mbid()
                                     album_id = dbq.add_album(
                                         album_name=album.title,
                                         mb_id=album_mbid,
-                                        artist_id=artist_id
+                                        artist_id=artist_id,
                                     )
 
                         # check if the song is already in the db. if not, fetch and add to db.
                         song_name = track.track.title
-                        song_id = dbq.get_song_id_from_name(song_name=song_name, artist_id=artist_id)
+                        song_id = dbq.get_song_id_from_name(
+                            song_name=song_name, artist_id=artist_id
+                        )
                         if not song_id:
                             try:
                                 song_mbid = track.track.get_mbid()
@@ -235,34 +223,33 @@ class DataCollector(object):
                                 song_name=song_name,
                                 song_mbid=song_mbid,
                                 album_id=album_id,
-                                artist_id=artist_id
+                                artist_id=artist_id,
                             )
 
                         # add the listening event to the DB
                         dbq.add_listening(
-                            user=user["id"],
-                            song=song_id,
-                            time=track.timestamp
+                            user=user["id"], song=song_id, time=track.timestamp
                         )
 
                         if self.debug:
-                            self.logger.debug(f"p{self.pid} New song\n  user {user['name']} \n   artist {track.track.artist.name} \n   {track.track.__dict__}")
+                            self.logger.debug(
+                                f"p{self.pid} New song\n  user {user['name']} \n   artist {track.track.artist.name} \n   {track.track.__dict__}"
+                            )
                 except pylast.PyLastError as E:
                     # same as before but this is needed if we stream the events and fetch them from the generator rather than fetching them all at once
                     if "Login: User required to be logged in" in str(E.__context__):
-                        self.logger.info(f"p{self.pid}    User listening history is private.")
-                        dbq.update_data_is_private(
-                            user_id=user["id"]
+                        self.logger.info(
+                            f"p{self.pid}    User listening history is private."
                         )
+                        dbq.update_data_is_private(user_id=user["id"])
             except Exception:
-                self.logger.info(f"p{self.pid}    Failed to fetch stream of listenings.")
+                self.logger.info(
+                    f"p{self.pid}    Failed to fetch stream of listenings."
+                )
                 traceback.print_exc()
                 return "repeat"
 
-            dbq.update_data_status(
-                user_ids=[user["id"]],
-                status=4
-            )
+            dbq.update_data_status(user_ids=[user["id"]], status=4)
 
         self.logger.info(f"p{self.pid}    Finished batch.")
         return "repeat"
@@ -294,7 +281,7 @@ class DataCollector(object):
 
             dbq.add_tags_to_artist(
                 tags=[{"tag": x.item.name, "weight": x.weight} for x in tags],
-                artist_id=artist["id"]
+                artist_id=artist["id"],
             )
 
         self.logger.info(f"p{self.pid}    Finished batch.")

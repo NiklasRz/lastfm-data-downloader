@@ -8,7 +8,6 @@ This is the class to create a stream of listening events used for specific types
 
 
 class StreamDB(object):
-
     def __init__(self, db_file_path):
 
         config_path = Path().absolute().joinpath("config").joinpath("config.yaml")

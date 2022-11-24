@@ -19,7 +19,6 @@ Be aware, that despite this being a data science project without users, we need 
 
 
 def debug_timer(func):
-
     def inner1(*args, **kwargs):
 
         if not args[0].config["debug"]:
@@ -53,7 +52,6 @@ def retry_if_locked(func):
 
 
 class DataBaseQueries(object):
-
     def __init__(self):
         self.db = DB()
         self.logger = logging.getLogger("data_py_logger")
@@ -81,7 +79,10 @@ class DataBaseQueries(object):
 
         self.db.cursor.execute(query)
         users = list(self.db.cursor.fetchall())
-        users = [{"id": x["id_nb"], "name": x["name"], "listens": x["total_listens"]} for x in users]
+        users = [
+            {"id": x["id_nb"], "name": x["name"], "listens": x["total_listens"]}
+            for x in users
+        ]
         return users
 
     @retry_if_locked
@@ -148,7 +149,7 @@ class DataBaseQueries(object):
         params = [str(user_object)]
         self.db.cursor.execute(query, params)
         user_id = self.db.cursor.fetchone()
-        exists = (True if user_id else False)
+        exists = True if user_id else False
 
         if exists:
             return user_id[0]

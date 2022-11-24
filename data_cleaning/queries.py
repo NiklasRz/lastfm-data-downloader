@@ -1,6 +1,7 @@
 from db import DB
 import random
 import logging
+
 logger = logging.getLogger("lfm_db_logger")
 
 """
@@ -10,7 +11,6 @@ These are the queries used to interact with the DB. All queries must be defined 
 
 
 class DataBaseQueries(object):
-
     def __init__(self):
         self.db = DB()
 
@@ -185,7 +185,7 @@ class DataBaseQueries(object):
             data = {
                 "x": [x["t"] for x in res],
                 "y": [x["cnt"] for x in res],
-                "t": f'{res[0]["song"]} | {res[0]["artist"]}'
+                "t": f'{res[0]["song"]} | {res[0]["artist"]}',
             }
             song_history.append(data)
 
