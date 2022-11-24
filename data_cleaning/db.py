@@ -1,4 +1,5 @@
 import sqlite3  # is included in core
+from pathlib import Path
 
 """
 Here we define and initialize the database tables for the final last.fm data base that we will use for analysis.
@@ -6,20 +7,10 @@ Here we define and initialize the database tables for the final last.fm data bas
 Notes:
 - song name is not unique, even after the merge because obviously multiple songs of different artists can have the same name
 
-Development notes:
-TODO: resolve and remove before release
-Changes to previous version:
-- artist is an FK now
-- album exists and is a FK
-- genre is not defined for a song but should be fetched from the artist
-- loves removed
-- released_mb, released_lfm -> released
-- data status added to user
-
 """
 
-file_path_raw = "../data/lastfm_raw.db"
-file_path_processed = "../data/lastfm_processed.db"
+file_path_raw = Path().absolute().joinpath("data").joinpath("lastfm_raw.db")
+file_path_processed = Path().absolute().joinpath("data").joinpath("lastfm_processed.db")
 
 DB_INIT = f"""
 
@@ -99,7 +90,7 @@ class DB(object):
 
     def connect(self):
         self.connection = sqlite3.connect(self.file_path)
-        self.connection.row_factory = sqlite3.Row  # DICT query results (misleading name imo)
+        self.connection.row_factory = sqlite3.Row  # DICT query results
         self.cursor = self.connection.cursor()
         for cmd in DB_INIT.split(';'):
             self.cursor.execute(cmd)

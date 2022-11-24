@@ -43,6 +43,7 @@ The data_collection table keeps track of the data status of each fetched user. T
 4 = listenings have been fetched
 5 = broken user (might have deleted their account)
 
+A note on song release dates. Because the release dates of songs in both last.fm and musicbrainz are very unreliable, we approximate the release date as the date the has been listened to the first time on last.fm. 
 
 
 ### Data Cleaning

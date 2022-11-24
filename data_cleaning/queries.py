@@ -102,22 +102,6 @@ class DataBaseQueries(object):
         This needs to run before we merge the songs, such that we find the song that was there first.
         """
 
-        # For some reason the query below takes hours for a simple 1000000 updates
-
-        # query = """
-        # UPDATE songs
-        # SET released_lfm = (
-        #     SELECT
-        #         MIN(time) AS release_date
-        #     FROM listens l
-        #     WHERE songs.id_nb = l.song
-        #     GROUP BY
-        #         song
-        # )
-        # """
-        # self.db.cursor.execute(query)
-        # self.db.connection.commit()
-
         query = """
         SELECT
             song,
@@ -499,7 +483,6 @@ class DataBaseQueries(object):
         self.db.cursor.execute(query)
         self.db.connection.commit()
 
-        # TODO: check in the final data if it is necessary to restrict the time range to a time window
         logger.info("    copying listens data...")
         # copy the listens using merged song data. Listens to duplicate songs go to original songs instead
         query = """

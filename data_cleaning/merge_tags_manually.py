@@ -1,7 +1,8 @@
 import sqlite3
+from pathlib import Path
 
 """
-If you couldn't wait for the tags fo finish collecting before working on the DB like me, this is the script used to retrospectively merge the tags table into the processed DB table.
+If you couldn't wait for the tags fo finish collecting before working on the DB (like me), this is the script used to retrospectively merge the tags table into the processed DB table.
 
 Copy the DB file with the tags into the data folder and rename it to lastfm_tags.db
 """
@@ -9,8 +10,8 @@ Copy the DB file with the tags into the data folder and rename it to lastfm_tags
 
 class DB(object):
     def __init__(self):
-        self.file_path_tags = "../data/lastfm_tags.db"
-        file_path_processed = "../data/lastfm_processed.db"
+        self.file_path_tags = Path().absolute().joinpath("data").joinpath("lastfm_tags.db")
+        file_path_processed = Path().absolute().joinpath("data").joinpath("lastfm_processed.db")
         self.file_path = file_path_processed
         self.connect()
 

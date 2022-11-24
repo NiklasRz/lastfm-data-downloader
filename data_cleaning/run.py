@@ -1,5 +1,6 @@
 from queries import dbq as dbq
 import logging
+from pathlib import Path
 
 
 class LastFM(object):
@@ -7,7 +8,8 @@ class LastFM(object):
     def __init__(self):
 
         # Logging
-        handler = logging.FileHandler('../data/logfile_lfm_db.log')
+        logfile = Path().absolute().joinpath("data").joinpath("logfile_lfm_db.log")
+        handler = logging.FileHandler(logfile)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         self.logger = logging.getLogger("lfm_db_logger")
@@ -51,7 +53,6 @@ class LastFM(object):
 
         self.logger.info("\nNew users per month:\n" + "".join([f"    {x['monthyear']}: {x['cnt']}\n" for x in dbq.get_user_registrations_per_month()]))
 
-        # show users per month, songs per month, , listenings per month
 
     def estimate_song_release_dates(self):
 
@@ -73,8 +74,6 @@ class LastFM(object):
 
         self.logger.info("\nMerging songs (this could take a while)")
 
-        # merge = input('Merge songs? y/n\n')
-        # if merge == "y":
         dbq.merge_songs()
 
     def explore_example_song_histories(self):
@@ -97,6 +96,7 @@ class LastFM(object):
 
         self.logger.info("\nCreating clean DB (this could take a while)")
         dbq.insert_data()
+        self.logger.info("\nDone!")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,8 @@ class LastFM(object):
     def __init__(self):
 
         # Logging
-        handler = logging.FileHandler('../data/logfile_lfm_collector.log')
+        logfile = Path().absolute().joinpath("data").joinpath("logfile_lfm_collector.log")
+        handler = logging.FileHandler(logfile)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         self.logger = logging.getLogger("data_py_logger")
@@ -29,7 +30,7 @@ class LastFM(object):
             credentials_path = Path().absolute().joinpath("config").joinpath("last_fm_credentials.json")
             with open(credentials_path, 'w'):
                 pass
-            self.logger.error("Please add your last.fm credentials to last_fm_credentials.json")
+            self.logger.error("Please add your last.fm credentials to config/last_fm_credentials.json. An example is provided in config/last_fm_credentials_EXAMPLE.json")
             return
         with open(credentials_path) as f:
             self.accounts = json.load(f)
