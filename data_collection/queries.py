@@ -5,6 +5,7 @@ from time import sleep
 from time import time as timer
 import logging
 import yaml
+from pathlib import Path
 
 logger = logging.getLogger("data_py_logger")
 
@@ -53,7 +54,8 @@ class DataBaseQueries(object):
         self.db = DB()
         self.logger = logging.getLogger("data_py_logger")
 
-        with open("config.yaml", "r") as stream:
+        config_path = Path().absolute().joinpath("config").joinpath("config.yaml")
+        with open(config_path, "r") as stream:
             self.config = yaml.safe_load(stream)
 
     @retry_if_locked

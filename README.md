@@ -21,18 +21,18 @@ A structured and systematic way of collecting data from lastfm
 
     This also works with multiple API keys but attention must be paid to the last.fm API terms of service.
 
-2. save the credentials in config/.last_fm_credentials.json. An example formatting can be found in config/last_fm_credentials_EXAMPLE.json
+2. save the credentials in config/last_fm_credentials.json. An example formatting can be found in config/last_fm_credentials_EXAMPLE.json
 
-3. configure config.yaml to your needs
+3. configure config/config.yaml to your needs
 
-4. execute data_collection/run.py
+4. from the base directory run: python3 data_collection/run.py
 
 Note: the data collection can be interrupted at any point. It will pick up where it left when you restart the process.
 
 
 ### Data Cleaning
 
-1. run lastfm_data/data_cleaning/run.py  - this does not overwrite anything in the original DB, so all changes can be reverted.
+1. from the base directory run data_cleaning/run.py  - this does not overwrite anything in the original DB, so all changes can be reverted.
 
 
 

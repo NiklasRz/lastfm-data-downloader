@@ -25,10 +25,8 @@ class LastFM(object):
         # load credentials
         if Path().absolute().joinpath("config").joinpath("last_fm_credentials.json").exists():
             credentials_path = Path().absolute().joinpath("config").joinpath("last_fm_credentials.json")
-        elif Path().absolute().parent.joinpath("config").joinpath("last_fm_credentials.json").exists():
-            credentials_path = Path().absolute().parent.joinpath("config").joinpath("last_fm_credentials.json")
         else:
-            credentials_path = Path().absolute().parent.joinpath("config").joinpath("last_fm_credentials.json") if Path("run.py").exists() else Path().absolute().joinpath("config").joinpath("last_fm_credentials.json")
+            credentials_path = Path().absolute().joinpath("config").joinpath("last_fm_credentials.json")
             with open(credentials_path, 'w'):
                 pass
             self.logger.error("Please add your last.fm credentials to last_fm_credentials.json")
@@ -37,7 +35,7 @@ class LastFM(object):
             self.accounts = json.load(f)
 
         # load configs
-        config_path = Path().absolute().joinpath("config").joinpath("config.yaml") if Path().absolute().joinpath("config").joinpath("config.yaml").exists() else Path().absolute().parent.joinpath("config").joinpath("config.yaml")
+        config_path = Path().absolute().joinpath("config").joinpath("config.yaml")
         with open(config_path, "r") as stream:
             self.config = yaml.safe_load(stream)
 
@@ -66,6 +64,15 @@ class LastFM(object):
 
             processes = []
 
+            # first, test the credentials
+            for a in self.accounts:
+                credentials = self.accounts[a]
+                network = pylast.LastFMNetwork(
+                    api_key=credentials["key"],
+                    api_secret=credentials["secret"]
+                )
+                self.test_credentials(network, credentials)
+
             for pid, a in enumerate(self.accounts):
                 p = Process(target=self.runner, args=(self.accounts[a], pid, f, ))
                 p.start()
@@ -81,8 +88,6 @@ class LastFM(object):
             api_key=credentials["key"],
             api_secret=credentials["secret"]
         )
-
-        self.test_credentials(network)
 
         dc = DataCollector(network=network, config=self.config, pid=pid)
 
@@ -116,13 +121,13 @@ class LastFM(object):
                     time.sleep(self.config["sleep"]["sleep_long"])
                     timeout_counter = 0
 
-    def test_credentials(self, network):
+    def test_credentials(self, network, credentials):
 
-        my_user = self.network.get_user()
-        print(my_user)
-
-
-
+        try:
+            my_user = network.get_user(credentials["username"])
+            my_user.get_registered()
+        except Exception:
+            raise Exception(f"Invalid user credentials on user {credentials['username']}")
 
 
 if __name__ == "__main__":
