@@ -1,0 +1,20 @@
+debug: False
+speedtest: False  # Tests the speed of all subfunctions in order to identify bottlenecks. unfortunately we have to add @profile manually to the functions we want to time
+speedtest_sample: 500  # number of elements to fetch for the speed test
+include_albums: False # fetching albums is 92% of the runtime so we omit them unless we need them
+fetch:  # what to fetch from the last.fm API. Don't change the order.
+  # - users  # fetches users and their friends (friends needed to snowball)
+  # - listens  # fetches listens, songs and artists
+  - tags  # fetches tags of artists
+timeframe:
+  # 2002(founding) until 2013-12 (2014-01 was a big change in the system)
+  start_year: 2002  # start collecting listening from this year on
+  start_month: 1  # start from the beginning of this month (1=Jan)
+  end_year: 2014 # last year of data collection
+  end_month: 1  # this month is not included in the data anymore
+sleep:
+  sleep_short: 60  # if there is a timeout, the process will sleep this many seconds before retrying
+  sleep_long: 600  # if there is a sequence of timeouts, it will sleep this many times
+  n_timeouts_until_long_sleep: 3  # this defines the length of the sequence of timeouts that triggers a long sleep
+  between_process_inits: 30  # the duration in seconds to wait between starting two parallel processes. Prevents fetching the same data in parallel.
+splitting_threshold: 10000  # if a user has more than this many listens, the retrieval is split to minimize the chance of timeout
