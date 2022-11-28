@@ -4,7 +4,7 @@ fetch:  # what to fetch from the last.fm API. Don't change the order.
   - listens  # fetches listens, songs and artists
   - tags  # fetches tags of artists
 limits:  # the maximum number of entries to fetch. You can set it to False if you don't want to limit it. You can interrupt the program at any time if you feel like you have enough data.
-  users: 3 # maximum number of users to fetch
+  users: 1000 # maximum number of users to fetch
 timeframe:
   # 2002(founding) until 2013-12 (2014-01 was a big change in the system)
   start_year: 2002  # start collecting listening from this year on
